@@ -7,13 +7,14 @@ incDir =include
 bldDir =build
 binDir =binary
 
-cc =g++
+cc =g++ -std=c++23
 incl = -I$(incDir)
 lib =-lpthread
-flag =-pthread
+flag =-pthread -MP -MD
 
 classes =$(shell find $(srcDir) -name "*.cpp")
 objects =$(patsubst $(srcDir)/%, $(bldDir)/%, $(classes:.cpp=.o))
+dependencies =$(patsubst $(bldDir)/%, $(bldDir)/%, $(objects:.o=.d))
 
 all:	directories $(prog)
 
@@ -39,5 +40,6 @@ clean:
 purge:	clean
 	@rm -rf $(binDir)
 	@echo "This is SPARTA !!!!!!!!"
-	@echo "KICK"
-	
+	@echo "KICK"	
+
+-include $(dependencies)

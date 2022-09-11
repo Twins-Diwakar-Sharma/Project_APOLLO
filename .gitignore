@@ -33,3 +33,6 @@
 
 #binaries
 ./C++/binary/*
+
+#build
+./C++/build/*

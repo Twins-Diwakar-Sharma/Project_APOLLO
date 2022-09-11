@@ -4,15 +4,15 @@
 #include <math.h>
 #include <string>
 #include <iostream>
+#include <functional>
   
 struct Activation
 {
-   float(*fx)(float);
 
-   float(*dfx)(float);
+   std::function<float(float)> fx, dfx;
 
-   Activation( float(*func)(float) , float(*diff)(float));
-
+   Activation(std::function<float(float)> func, std::function<float(float)> diff);
+   Activation(const Activation&);
 };
 
 namespace act{
