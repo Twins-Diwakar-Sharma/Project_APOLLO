@@ -8,9 +8,12 @@ class Layer
 {
     public:
         Vec neurons, error;
-        const Activation& act;
+        const Activation& activation;
         Layer(int i);
         Layer(int i, const Activation& a);
+        void activate();
+        float activate(int index);
+        float deactivate(int index);
 };
 
 

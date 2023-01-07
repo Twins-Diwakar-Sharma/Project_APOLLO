@@ -21,18 +21,20 @@
 
 int main()
 {
-    float six = act::sigmoid.fx(0.125f);
-    std::cout << six << std::endl; 
+   
     Layer l = {10, act::sigmoid};       
-    FNN f = Layer(10,act::sigmoid) + Layer(20,act::sigmoid);
 
-    FNN fnn = 10/act::sigmoid + 20/act::sigmoid + 30/act::sigmoid;
+    Vec input(28*28);
 
-    Vec input(10);
+    FNN fnn = input + 50/act::sigmoid + 20/act::sigmoid + 10/act::sigmoid;
 
-    FNN f2 = input + 10 + 20/act::sigmoid + 30;
+   fnn.train(2,"res/trainImages", "res/trainLabels");
+   std::cout << " %%%%%%%%%%%%%% train ends %%%%%%%%%%%%%%% " << std::endl;
+   fnn.test("res/trainImages", "res/trainLabels");
+   
+    
     
 
-    return 1;
+    return 0;
 }
 
