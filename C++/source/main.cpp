@@ -27,8 +27,9 @@ int main()
     Vec input(28*28);
 
     FNN fnn = input + 50/act::sigmoid + 20/act::sigmoid + 10/act::sigmoid;
+    fnn.setLearningRate(0.01);
 
-   fnn.train(2,"res/trainImages", "res/trainLabels");
+   fnn.train("res/trainImages", "res/trainLabels", 5, 2); // learning rate then epoch
    std::cout << " %%%%%%%%%%%%%% train ends %%%%%%%%%%%%%%% " << std::endl;
    fnn.test("res/trainImages", "res/trainLabels");
    

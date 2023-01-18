@@ -1,20 +1,21 @@
 #include "FNN.h"
 
 
-FNN::FNN(Vec& v) : input(v)
+FNN::FNN(Vec& v) : input(v), lossFxn(loss::meanSquared)
 {}
 
 FNN::FNN(FNN& f) : layers(f.layers),
     weights(f.weights), dw(f.dw),
     biases(f.biases), db(f.db),
-    input(f.input)
+    input(f.input), lossFxn(f.lossFxn), alpha(f.alpha)
 {
 }
 
 FNN::FNN(FNN&& f) : layers(std::move(f.layers)),
     weights(std::move(f.weights)), dw(std::move(f.dw)),
     biases(std::move(f.biases)), db(std::move(f.db)),
-    input(f.input)
+    input(f.input), alpha(f.alpha),
+    lossFxn(std::move(f.lossFxn))
 {
 }
 
@@ -33,6 +34,8 @@ FNN& FNN::operator=(FNN& f)
          biases.push_back(f.biases[i]);
          db.push_back(f.db[i]);
          input[i] = f.input[i];
+         alpha = f.alpha;
+         lossFxn = f.lossFxn;
     }
    
     return *this;
@@ -48,6 +51,8 @@ FNN& FNN::operator=(FNN&& f)
     biases = std::move(f.biases);
     db = std::move(f.db);
     input = f.input;
+    alpha = f.alpha;
+    lossFxn = f.lossFxn;
     return *this;
 }
 
@@ -94,43 +99,6 @@ void FNN::push_back_layer(Layer&& l)
     layers.push_back(l);
 }
 
-/*
-FNN operator+(Layer& l, Layer& r)
-{
-    FNN f;
-    f.push_back(l);
-    f.push_back(r);
-    f.push_back_WeightsAndBiases();
-    return f;
-}
-
-FNN operator+(Layer& l, Layer&& r)
-{
-    FNN f;
-    f.push_back(l);
-    f.push_back(r);
-    f.push_back_WeightsAndBiases();
-    return f;
-}
-
-FNN operator+(Layer&& l, Layer& r)
-{
-    FNN f;
-    f.push_back(l);
-    f.push_back(r);
-    f.push_back_WeightsAndBiases();
-    return f;
-}
-
-FNN operator+(Layer&& l, Layer&& r)
-{
-    FNN f;
-    f.push_back(l);
-    f.push_back(r);
-    f.push_back_WeightsAndBiases();
-    return f;
-}
-*/
 
 FNN operator+(FNN& f, Layer& l)
 {
@@ -206,6 +174,23 @@ Layer operator/(int size, const Activation& a)
     return {size,a};
 }
 
+void FNN::setLearningRate(float alpha)
+{
+    this->alpha = alpha;
+}
+
+void FNN::setLossFunction(const LossFunction& l)
+{
+    lossFxn = l;
+}
+
+void FNN::setCustomLoss(std::function<float(float,float)>& fx,
+                        std::function<float(float,float)>& dfx)
+{
+    lossFxn.fx = fx;
+    lossFxn.dfx = dfx;
+}
+
 void FNN::forwardPass()
 {
     layers[0].neurons = weights[0]*input + biases[0];
@@ -214,7 +199,6 @@ void FNN::forwardPass()
     for(int i=1; i<layers.size(); i++)
     {
        layers[i].neurons = weights[i]*layers[i-1].neurons + biases[i]; 
- //      layers[i].neurons = weights[i]*layers[i-1].neurons; // asuming no shit in multiply
        layers[i].activate();
     }
 
@@ -231,7 +215,6 @@ void FNN::backwardPass()
                 layers[w-1].error[j] = 0;
             for(int k=0; k<weights[w].row(); k++)
             {
-              //  printf("w[%d][%d][%d]\n",w,j,k);
                 float temp = layers[w].error[k] * layers[w].deactivate(k);
                 if(w>0)     [[likely]]
                 {
@@ -251,10 +234,6 @@ void FNN::backwardPass()
         }    
    }
 
-//    for(int w=weights.size()-1; w>0; w--)
-//    {
-//        for(int r=0; )   
-//    }
   
 }
 
@@ -271,7 +250,7 @@ void FNN::gradientDescend()
     }
 }
 
-void FNN::train(int epoch, std::string imagePath, std::string labelPath)
+void FNN::train(std::string imagePath, std::string labelPath, int batchSize, int epoch)
 {
    
   std::ifstream images;
@@ -291,29 +270,45 @@ void FNN::train(int epoch, std::string imagePath, std::string labelPath)
       dataset.getLabelConfig(labels,magicNo,totalLabels);
 
       int imagesLeft = totalImages;
-      while(imagesLeft--)
+      while(imagesLeft > 0)
       {
-          if(imagesLeft%1000 == 0)
-          {
-              std::cout << totalImages - imagesLeft << std::endl;
-          }
-      
-          int targetIndex = dataset.getNextDatasetLabel(labels);
-          target.reset();
-          target[targetIndex] = 1;
-
-          input = dataset.getNextDatasetImage(images,row,col);
-            
-          forwardPass(); 
-          
           for(int i=0; i<target.size(); i++)
+              layers.back().error[i] = 0;
+
+          for(int i=0; i<batchSize; i++)
           {
-             layers.back().error[i] = -2*(target[i]-layers.back().neurons[i]); 
+              if(imagesLeft <= 0)
+                  break;
+
+              if(imagesLeft%1000 == 0)
+              {
+                  std::cout << totalImages - imagesLeft << std::endl;
+              }
+          
+              int targetIndex = dataset.getNextDatasetLabel(labels);
+              target.reset();
+              target[targetIndex] = 1;
+
+              input = dataset.getNextDatasetImage(images,row,col);
+                
+              forwardPass(); 
+              
+              for(int i=0; i<target.size(); i++)
+              {
+                 layers.back().error[i] += lossFxn.dfx(target[i],layers.back().neurons[i]); 
+              }
+
+              imagesLeft--;
+
           }
-            
+
+          for(int i=0; i<target.size(); i++)
+              layers.back().error[i] /= batchSize;
+                    
           backwardPass();
 
           gradientDescend();
+
       }
       images.close();
       labels.close();
@@ -368,20 +363,7 @@ void FNN::test(std::string imagePath, std::string labelPath)
       target[targetIndex] = 1;
 
       input = dataset.getNextDatasetImage(images,row,col);
-/*        for(int r=0; r<28; r++)
-      {
-        for(int c=0; c<28; c++)
-        {
-            float value = input[r*28 + c];
-            if(value > 0.6f)
-                std::cout << "X ";
-            else
-                std::cout << ". ";
-        }
-        std::cout << std::endl;
-      }
 
-*/
       forwardPass(); 
         
 
