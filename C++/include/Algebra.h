@@ -95,5 +95,7 @@ namespace randomize
     void normal(Vec&);
 };
 
+void matXvec(const Mat& m, const Vec& v, Vec& ans);
+
 #endif
 
