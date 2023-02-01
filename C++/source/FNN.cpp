@@ -250,7 +250,7 @@ void FNN::gradientDescend()
     }
 }
 
-void FNN::train(std::string imagePath, std::string labelPath, int batchSize, int epoch)
+void FNN::train(Dataset* dataset, int batchSize, int epoch)
 {
    
   std::ifstream images;
@@ -264,10 +264,10 @@ void FNN::train(std::string imagePath, std::string labelPath, int batchSize, int
    
   while(epoch--)
   {
-      images.open(imagePath);
-      labels.open(labelPath);
-      dataset.getConfig(images,magicNo,totalImages,row,col);
-      dataset.getLabelConfig(labels,magicNo,totalLabels);
+      images.open(dataset->imagePath);
+      labels.open(dataset->labelPath);
+      dataset->getConfig(images,magicNo,totalImages,row,col);
+      dataset->getLabelConfig(labels,magicNo,totalLabels);
 
       int imagesLeft = totalImages;
       while(imagesLeft > 0)
@@ -285,11 +285,11 @@ void FNN::train(std::string imagePath, std::string labelPath, int batchSize, int
                   std::cout << totalImages - imagesLeft << std::endl;
               }
           
-              int targetIndex = dataset.getNextDatasetLabel(labels);
+              int targetIndex = dataset->getNextDatasetLabel(labels);
               target.reset();
               target[targetIndex] = 1;
 
-              input = dataset.getNextDatasetImage(images,row,col);
+              input = dataset->getNextDatasetImage(images,row,col);
                 
               forwardPass(); 
               
@@ -317,7 +317,7 @@ void FNN::train(std::string imagePath, std::string labelPath, int batchSize, int
 
 }
 
-void FNN::test(std::string imagePath, std::string labelPath)
+void FNN::test(Dataset* dataset)
 {
    
   std::ifstream images;
@@ -330,10 +330,10 @@ void FNN::test(std::string imagePath, std::string labelPath)
   Vec target(outputSize); 
 
    
-  images.open(imagePath);
-  labels.open(labelPath);
-  dataset.getConfig(images,magicNo,totalImages,row,col);
-  dataset.getLabelConfig(labels,magicNo,totalLabels);
+  images.open(dataset->imagePath);
+  labels.open(dataset->labelPath);
+  dataset->getConfig(images,magicNo,totalImages,row,col);
+  dataset->getLabelConfig(labels,magicNo,totalLabels);
 
   int imagesLeft = totalImages;
 
@@ -358,11 +358,11 @@ void FNN::test(std::string imagePath, std::string labelPath)
           std::cout << totalImages - imagesLeft << std::endl;
       }
   
-      int targetIndex = dataset.getNextDatasetLabel(labels);
+      int targetIndex = dataset->getNextDatasetLabel(labels);
       target.reset();
       target[targetIndex] = 1;
 
-      input = dataset.getNextDatasetImage(images,row,col);
+      input = dataset->getNextDatasetImage(images,row,col);
 
       forwardPass(); 
         

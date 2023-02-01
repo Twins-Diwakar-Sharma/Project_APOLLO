@@ -8,6 +8,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <thread>
 
 class FNN
 {
@@ -17,7 +18,6 @@ class FNN
          std::vector<Mat> weights, dw;
          std::vector<Vec> biases, db;
          Vec& input;
-         MNIST dataset;
          float alpha = 0.15f;
          LossFunction lossFxn;
 
@@ -41,8 +41,8 @@ class FNN
         void backwardPass();
         void gradientDescend();
 
-        void train(std::string imagePath, std::string labelPath, int batchSize, int epoch);
-        void test(std::string imagePath, std::string labelPath);
+        void train(Dataset* dataset, int batchSize, int epoch);
+        void test(Dataset* dataset);
         
 };
 
