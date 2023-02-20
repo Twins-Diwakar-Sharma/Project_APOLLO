@@ -338,6 +338,7 @@ Mat::Mat(const Mat& mat)
     for(int i=0; i<row_; i++)
         for(int j=0; j<col_; j++)
             data[i][j] = mat.data[i][j];
+
 }
 
 Mat::Mat(Mat&& mat)
@@ -458,6 +459,7 @@ Mat& Mat::operator=(Mat& m)
         for(int j=0; j<m.col_; j++)
             data[i][j] = m.data[i][j];
 
+
     return *this;
 }
 
@@ -469,6 +471,8 @@ Mat& Mat::operator=(Mat&& m)
     float** temp = this->data;
     data = m.data;
     m.data = temp;
+
+
 
     return *this;
 }

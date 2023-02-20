@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <thread>
+#include "ProgressBar.h"
 
 class FNN
 {
@@ -20,6 +21,7 @@ class FNN
          Vec& input;
          float alpha = 0.15f;
          LossFunction lossFxn;
+
 
     public:
         FNN(Vec&);

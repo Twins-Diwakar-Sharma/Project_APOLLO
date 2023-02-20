@@ -22,6 +22,7 @@
 #define H_LOSS_FUNCTION_H
 
 #include <functional>
+#include <cmath>
 
 struct LossFunction
 {
@@ -35,6 +36,7 @@ struct LossFunction
 
 namespace loss {
     extern LossFunction meanSquared;
+    extern LossFunction crossEntropy;
 }
 
 #endif

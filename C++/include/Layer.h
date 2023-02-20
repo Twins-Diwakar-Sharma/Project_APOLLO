@@ -12,8 +12,7 @@ class Layer
         Layer(int i);
         Layer(int i, const Activation& a);
         void activate();
-        float activate(int index);
-        float deactivate(int index);
+        Vec deactivate();
 };
 
 

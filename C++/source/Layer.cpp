@@ -14,19 +14,10 @@ Layer::Layer(int i, const Activation& a) :
 
 void Layer::activate()
 {
-    for(int i=0; i<neurons.size(); i++)
-    {
-        neurons[i] = activation.fx(neurons[i]);
-    }
+    neurons = activation.fx(neurons);
 }
 
-
-float Layer::activate(int index)
+Vec Layer::deactivate()
 {
-    return activation.fx(neurons[index]);
-}
-
-float Layer::deactivate(int index)
-{
-    return activation.dfx(neurons[index]);
+    return activation.dfx(neurons);
 }

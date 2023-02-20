@@ -195,11 +195,11 @@ void FNN::forwardPass()
 {
     layers[0].neurons = weights[0]*input + biases[0];
     layers[0].activate();
- //
+
     for(int i=1; i<layers.size(); i++)
     {
        layers[i].neurons = weights[i]*layers[i-1].neurons + biases[i]; 
-       layers[i].activate();
+        layers[i].activate();
     }
 
 }
@@ -209,13 +209,17 @@ void FNN::backwardPass()
     
    for(int w=weights.size()-1; w>=0; w--)
    {
+        Vec deactivatedVec(layers[w].neurons.size());
+
+        deactivatedVec = layers[w].deactivate();
+
         for(int j=0; j<weights[w].col(); j++)
         {
             if(w>0)
                 layers[w-1].error[j] = 0;
             for(int k=0; k<weights[w].row(); k++)
             {
-                float temp = layers[w].error[k] * layers[w].deactivate(k);
+                float temp = layers[w].error[k] * deactivatedVec[k];
                 if(w>0)     [[likely]]
                 {
                    layers[w-1].error[j] += temp * weights[w][k][j];
@@ -230,7 +234,7 @@ void FNN::backwardPass()
 
         for(int k=0; k<weights[w].row(); k++)
         {
-            db[w][k] = layers[w].error[k] * layers[w].deactivate(k);
+            db[w][k] = layers[w].error[k] * deactivatedVec[k];
         }    
    }
 
@@ -261,7 +265,7 @@ void FNN::train(Dataset* dataset, int batchSize, int epoch)
   int outputSize = layers.back().neurons.size();
 
   Vec target(outputSize); 
-   
+  int totalEpoches = epoch; 
   while(epoch--)
   {
       images.open(dataset->imagePath);
@@ -270,6 +274,8 @@ void FNN::train(Dataset* dataset, int batchSize, int epoch)
       dataset->getLabelConfig(labels,magicNo,totalLabels);
 
       int imagesLeft = totalImages;
+        
+      ProgressBar::display(totalEpoches - epoch, totalEpoches, 0,totalImages);
       while(imagesLeft > 0)
       {
           for(int i=0; i<target.size(); i++)
@@ -279,11 +285,6 @@ void FNN::train(Dataset* dataset, int batchSize, int epoch)
           {
               if(imagesLeft <= 0)
                   break;
-
-              if(imagesLeft%1000 == 0)
-              {
-                  std::cout << totalImages - imagesLeft << std::endl;
-              }
           
               int targetIndex = dataset->getNextDatasetLabel(labels);
               target.reset();
@@ -309,6 +310,9 @@ void FNN::train(Dataset* dataset, int batchSize, int epoch)
 
           gradientDescend();
 
+
+          ProgressBar::display(totalEpoches - epoch, totalEpoches, totalImages-imagesLeft,totalImages);
+     
       }
       images.close();
       labels.close();
@@ -353,10 +357,6 @@ void FNN::test(Dataset* dataset)
     imagesLeft = 50;
   while(imagesLeft--)
   {
-      if(imagesLeft%1000 == 0)
-      {
-          std::cout << totalImages - imagesLeft << std::endl;
-      }
   
       int targetIndex = dataset->getNextDatasetLabel(labels);
       target.reset();
@@ -400,5 +400,4 @@ void FNN::test(Dataset* dataset)
 
 
 }
-
 

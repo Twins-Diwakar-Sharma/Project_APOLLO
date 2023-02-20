@@ -5,18 +5,20 @@
 #include <string>
 #include <iostream>
 #include <functional>
+#include "Algebra.h"
   
 struct Activation
 {
 
-   std::function<float(float)> fx, dfx;
+   std::function<Vec(Vec&)> fx, dfx;
 
-   Activation(std::function<float(float)> func, std::function<float(float)> diff);
+   Activation(std::function<Vec(Vec&)> func, std::function<Vec(Vec&)> diff);
    Activation(const Activation&);
 };
 
 namespace act{
     extern Activation sigmoid;
+    extern Activation softmax;
 };
 
 #endif

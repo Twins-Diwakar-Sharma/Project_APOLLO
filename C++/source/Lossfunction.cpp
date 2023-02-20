@@ -39,3 +39,13 @@ LossFunction loss::meanSquared (
 
 );
 
+LossFunction loss::crossEntropy (
+        [](float target, float output) -> float
+        {
+            return -target * log(output);
+        },
+        [](float target, float output) -> float
+        {
+            return -target/output;
+        }
+);

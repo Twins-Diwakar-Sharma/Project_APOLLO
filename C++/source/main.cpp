@@ -24,16 +24,14 @@ int main()
     MNIST dataset("res/trainImages", "res/trainLabels");  
 
     Vec input(28*28);
-    FNN fnn = input + 50/act::sigmoid + 20/act::sigmoid + 10/act::sigmoid;
-    fnn.setLearningRate(0.01);
-    fnn.setLossFunction(loss::meanSquared);
+    FNN fnn = input + 50/act::sigmoid + 20/act::sigmoid + 10/act::softmax;
+    fnn.setLearningRate(0.15f);
+    fnn.setLossFunction(loss::crossEntropy);
 
-   fnn.train(&dataset, 5, 2); // batch size then epoch
+   fnn.train(&dataset, 10, 10); // batch size then epoch
    std::cout << " %%%%%%%%%%%%%% train ends %%%%%%%%%%%%%%% " << std::endl;
    fnn.test(&dataset);
    
-    
-    
 
     return 0;
 }
