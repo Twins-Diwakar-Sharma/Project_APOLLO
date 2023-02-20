@@ -36,7 +36,6 @@ struct LossFunction
 
 namespace loss {
     extern LossFunction meanSquared;
-    extern LossFunction crossEntropy;
 }
 
 #endif

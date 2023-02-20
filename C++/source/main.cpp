@@ -26,7 +26,7 @@ int main()
     Vec input(28*28);
     FNN fnn = input + 50/act::sigmoid + 20/act::sigmoid + 10/act::softmax;
     fnn.setLearningRate(0.15f);
-    fnn.setLossFunction(loss::crossEntropy);
+    fnn.setLossFunction(loss::meanSquared);
 
    fnn.train(&dataset, 10, 10); // batch size then epoch
    std::cout << " %%%%%%%%%%%%%% train ends %%%%%%%%%%%%%%% " << std::endl;
